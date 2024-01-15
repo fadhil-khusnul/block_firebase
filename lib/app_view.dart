@@ -1,4 +1,5 @@
 import 'package:block_firebase/blocs/authentication_bloc/authentication_bloc.dart';
+import 'package:block_firebase/blocs/get_post_bloc/get_post_bloc.dart';
 import 'package:block_firebase/blocs/my_user_bloc/my_user_bloc.dart';
 import 'package:block_firebase/blocs/sign_in_bloc/sign_in_bloc.dart';
 import 'package:block_firebase/blocs/update_user_info_bloc/update_user_info_bloc.dart';
@@ -6,6 +7,7 @@ import 'package:block_firebase/screens/home/home_screen.dart';
 import 'package:block_firebase/screens/authentication/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:post_repository/post_repository.dart';
 
 class MyAppView extends StatelessWidget {
   const MyAppView({super.key});
@@ -50,6 +52,10 @@ class MyAppView extends StatelessWidget {
                       myUserId:
                           context.read<AuthenticationBloc>().state.user!.uid)),
               ),
+              BlocProvider(
+                  create: (context) =>
+                      GetPostBloc(postRepository: FirebasePostRepository())
+                        ..add(GetPosts()))
             ],
             child: const HomeScreen(),
           );

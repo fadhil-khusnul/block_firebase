@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:block_firebase/blocs/create_post_bloc/create_post_bloc.dart';
 import 'package:block_firebase/blocs/my_user_bloc/my_user_bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class PostScreen extends StatefulWidget {
 
 class _PostScreenState extends State<PostScreen> {
   late Post post;
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
@@ -28,40 +30,58 @@ class _PostScreenState extends State<PostScreen> {
   @override
   Widget build(BuildContext context) {
     log(post.toString());
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {},
-          child: const Icon(
-            CupertinoIcons.add,
-            color: Colors.white,
+    return BlocListener<CreatePostBloc, CreatePostState>(
+      listener: (context, state) {
+        if (state is CreatePostSuccess) {
+          Navigator.pop(context);
+          
+        }
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              if (_controller.text.length != 0) {
+                setState(() {
+                  post.post = _controller.text;
+                });
+
+                context.read<CreatePostBloc>().add(CreatePost(post));
+                log(post.toString());
+              }
+            },
+            child: const Icon(
+              CupertinoIcons.add,
+              color: Colors.white,
+            ),
           ),
-        ),
-        appBar: AppBar(
-          elevation: 0,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          title: const Text(
-            "Create a Post",
-            textAlign: TextAlign.center,
+          appBar: AppBar(
+            elevation: 0,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            title: const Text(
+              "Create a Post",
+              textAlign: TextAlign.center,
+            ),
           ),
-        ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              maxLines: 10,
-              maxLength: 500,
-              decoration: InputDecoration(
-                hintText: "Enter post here...",
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey)),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary)),
+          body: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: _controller,
+                maxLines: 10,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  hintText: "Enter post here...",
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(color: Colors.grey)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.primary)),
+                ),
               ),
             ),
           ),

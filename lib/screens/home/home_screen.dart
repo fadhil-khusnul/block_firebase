@@ -1,4 +1,6 @@
 import 'dart:io'; // Import File class
+import 'package:block_firebase/blocs/create_post_bloc/create_post_bloc.dart';
+import 'package:block_firebase/blocs/get_post_bloc/get_post_bloc.dart';
 import 'package:block_firebase/blocs/my_user_bloc/my_user_bloc.dart';
 import 'package:block_firebase/blocs/sign_in_bloc/sign_in_bloc.dart';
 import 'package:block_firebase/blocs/update_user_info_bloc/update_user_info_bloc.dart';
@@ -8,6 +10,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
+import 'package:post_repository/post_repository.dart';
+
 import 'package:user_repository/user_repository.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -38,8 +43,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                       context,
                       MaterialPageRoute<void>(
-                        builder: (BuildContext context) => PostScreen(
-                            context.read<MyUserBloc>().state.user!),
+                        builder: (BuildContext context) =>
+                            BlocProvider<CreatePostBloc>(
+                          create: (context) => CreatePostBloc(
+                              postRepository: FirebasePostRepository()),
+                          child: PostScreen(state.user!),
+                        ),
                       ));
                 },
                 child: const Icon(
@@ -55,7 +64,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                 ),
               );
-
             }
           },
         ),
@@ -160,62 +168,85 @@ class _HomeScreenState extends State<HomeScreen> {
                 ))
           ],
         ),
-        body: ListView.builder(
-            itemCount: 10,
-            itemBuilder: (context, int i) {
-              return Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Container(
-                  width: double.infinity,
-                  // height: 400,
-                  // color: Colors.blue,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: const BoxDecoration(
-                                  color: Colors.red, shape: BoxShape.circle),
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Name ",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
+        body: BlocBuilder<GetPostBloc, GetPostState>(
+          builder: (context, state) {
+            if (state is GetPostSuccess) {
+              return ListView.builder(
+                  itemCount: state.posts.length,
+                  itemBuilder: (context, int i) {
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Container(
+                        width: double.infinity,
+                        // height: 400,
+                        // color: Colors.blue,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 50,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey.shade300,
+                                        shape: BoxShape.circle,
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                              state.posts[i].myUser.picture!,
+                                            ),
+                                            fit: BoxFit.cover)),
                                   ),
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Text("2024-04-01 "),
-                              ],
-                            )
-                          ],
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        state.posts[i].myUser.name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 5,
+                                      ),
+                                      Text(DateFormat('dd-MM-yyyy')
+                                          .format(state.posts[i].createAt)),
+                                    ],
+                                  )
+                                ],
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Container(
+                                  // color: Colors.amber,
+                                  child: Text(
+                                state.posts[i].post,
+                              ))
+                            ],
+                          ),
                         ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Container(
-                          // color: Colors.amber,
-                          child: Text(
-                              "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia tempora beatae velit possimus esse incidunt aperiam optio a deleniti aspernatur."),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
+                      ),
+                    );
+                  });
+            } else if (state is GetPostLoading) {
+              return const Center(
+                child: CircularProgressIndicator(),
               );
-            }),
+            } else {
+              return const Center(
+                child: Text('An error has occured'),
+              );
+            }
+          },
+        ),
       ),
     );
   }

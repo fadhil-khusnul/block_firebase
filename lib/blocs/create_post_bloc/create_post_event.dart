@@ -6,3 +6,10 @@ sealed class CreatePostEvent extends Equatable {
   @override
   List<Object> get props => [];
 }
+
+class CreatePost extends CreatePostEvent {
+  final Post post;
+
+  const CreatePost(this.post);
+  
+}
